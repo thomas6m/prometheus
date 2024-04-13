@@ -1,0 +1,56 @@
+dnf -y install net-tools telnet curl wget traceroute nmap-ncat git  httpd-tools jq  nfs-utils
+systemctl stop firewalld && systemctl disable firewalld
+sed -i s/^SELINUX=.*$/SELINUX=disabled/ /etc/selinux/config && setenforce 0
+cd ~ && git  clone https://github.com/thomas6m/OpenShift-4.7.2.git
+cp ~/OpenShift-4.7.2/infra-setup/70-ipv6.conf /etc/sysctl.d/70-ipv6.conf
+sysctl --load /etc/sysctl.d/70-ipv6.conf
+dnf install -y epel-release && dnf update -y && reboot
+
+
+prometheus
+wget  https://github.com/prometheus/prometheus/releases/download/v2.51.1/prometheus-2.51.1.linux-amd64.tar.gz
+
+tar -xzf prometheus-2.51.1.linux-amd64.tar.gz
+
+useradd --no-create-home --shell /bin/false prometheus
+
+mkdir /etc/prometheus
+cp prometheus-2.51.1.linux-amd64/prometheus.yml /etc/prometheus/prometheus.yml
+cp -r prometheus-2.51.1.linux-amd64/consoles /etc/prometheus/
+cp -r prometheus-2.51.1.linux-amd64/console_libraries /etc/prometheus/
+chown -R prometheus:prometheus /etc/prometheus
+
+
+mkdir /var/lib/prometheus
+chown -R prometheus:prometheus /var/lib/prometheus
+mv prometheus-2.51.1.linux-amd64/{prometheus,promtool} /usr/local/bin/
+chown prometheus:prometheus  /usr/local/bin/{prometheus,promtool}
+------------------------------------------------------------------------
+vi /etc/systemd/system/prometheus.service
+[Unit]
+Description=Prometheus
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=prometheus
+Group=prometheus
+Type=simple
+ExecStart=/usr/local/bin/prometheus \
+  --config.file=/etc/prometheus/prometheus.yml \
+  --storage.tsdb.path=/var/lib/prometheus \
+  --web.console.templates=/usr/local/bin/consoles \
+  --web.console.libraries=/usr/local/bin/console_libraries
+
+[Install]
+WantedBy=multi-user.target
+-------------------------------------------------------------------------
+
+systemctl daemon-reload
+systemctl enable --now prometheus
+systemctl status prometheus
+
+
+http://10.0.0.100:9090
+
+-------------------------------------------------------------------------------------------------------
