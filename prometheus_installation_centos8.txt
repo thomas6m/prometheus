@@ -1,8 +1,12 @@
 dnf -y install net-tools telnet curl wget traceroute nmap-ncat git  httpd-tools jq  nfs-utils
 systemctl stop firewalld && systemctl disable firewalld
 sed -i s/^SELINUX=.*$/SELINUX=disabled/ /etc/selinux/config && setenforce 0
-cd ~ && git  clone https://github.com/thomas6m/OpenShift-4.7.2.git
-cp ~/OpenShift-4.7.2/infra-setup/70-ipv6.conf /etc/sysctl.d/70-ipv6.conf
+
+tee /etc/sysctl.d/70-ipv6.conf<<EOF
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+EOF
+
 sysctl --load /etc/sysctl.d/70-ipv6.conf
 dnf install -y epel-release && dnf update -y && reboot
 
