@@ -1,0 +1,95 @@
+1. Install python3
+dnf install python3 -y
+
+2. Install dependent module
+pip3 install --upgrade pip
+pip3 install setuptools_rust
+pip3 install bcrypt
+
+
+3. Create password hashing python script
+tee gen-pass.py<<EOF
+import getpass
+import bcrypt
+password = getpass.getpass("password: ")
+hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+print(hashed_password.decode())
+EOF
+
+
+4. Run the script to generate hash
+
+python3 gen-pass.py
+
+[root@prometheus ~]# python3 gen-pass.py
+password:
+$2b$12$wx4HAso8c7k/b6ItsLdE6ey6RRMHIHW7q1ogr8uFsiJvQ3tSa.lEC
+
+
+5. Create web.yml
+vi /etc/prometheus/web.yml
+basic_auth_users:
+    admin: $2b$12$wx4HAso8c7k/b6ItsLdE6ey6RRMHIHW7q1ogr8uFsiJvQ3tSa.lEC
+
+6. Set owner
+chown prometheus:prometheus web.yml
+
+
+7. Update web configuration file details.
+
+tee /etc/systemd/system/prometheus.service<<EOF
+[Unit]
+Description=Prometheus
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=prometheus
+Group=prometheus
+Type=simple
+ExecStart=/usr/local/bin/prometheus --web.config.file=/etc/prometheus/web.yml\
+  --config.file=/etc/prometheus/prometheus.yml \
+  --storage.tsdb.path=/var/lib/prometheus \
+  --web.console.templates=/usr/local/bin/consoles \
+  --web.console.libraries=/usr/local/bin/console_libraries
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+8. Reload systemd and restart prometheus
+systemctl daemon-reload && systemctl restart prometheus
+
+9. Test Authentication
+
+http://10.0.0.100:9090/
+
+username : admin
+password : test
+
+###########################################################################################
+10. Generate self signed certificate
+mkdir -p /etc/prometheus/certs/ && cd /etc/prometheus/certs/
+openssl req -x509 -newkey rsa:4096 -nodes -keyout prometheus.key -out prometheus.crt
+
+11. Set permission
+chown -R prometheus:prometheus /etc/prometheus/
+
+12. Update web.yml
+vi /etc/prometheus/web.yml
+basic_auth_users:
+    admin: $2b$12$wx4HAso8c7k/b6ItsLdE6ey6RRMHIHW7q1ogr8uFsiJvQ3tSa.lEC
+tls_server_config:
+  cert_file: /etc/prometheus/certs/example.com/prometheus.crt
+  key_file: /etc/prometheus/certs/prometheus.key
+
+
+13. Restart prometheus
+systemctl restart prometheus
+
+14. Test Encryption and authentication 
+
+https://10.0.0.100:9090/
+username : admin
+password : test
+###########################################################################################
