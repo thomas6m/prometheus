@@ -9,7 +9,13 @@ tar xvfz node_exporter-1.7.0.linux-amd64.tar.gz
 3. Move Node Exporter Binary:
 mv node_exporter-1.7.0.linux-amd64/node_exporter /usr/local/bin/
 
-4. Create a Systemd Service File:
+4. Create a Dedicated User
+useradd -rs /bin/false node_exporter
+
+5. Set permission
+chown node_exporter:node_exporter /usr/local/bin/node_exporter
+
+6. Create a Systemd Service File:
 tee /etc/systemd/system/node_exporter.service<<EOF
 [Unit]
 Description=Node Exporter
@@ -25,17 +31,14 @@ ExecStart=/usr/local/bin/node_exporter
 WantedBy=multi-user.target
 EOF
 
-5. Create a Dedicated User
-useradd -rs /bin/false node_exporter
-
-6. Reload systemd and Start Node Exporter:
+7. Reload systemd and Start Node Exporter:
 systemctl daemon-reload && systemctl start node_exporter
 
-7. Enable Node Exporter to Start on Boot:
+8. Enable Node Exporter to Start on Boot:
 systemctl enable node_exporter
 
-8. Check Node Exporter Status:
+9. Check Node Exporter Status:
 systemctl status node_exporter
 
-9. Accessing Metrics:
+10. Accessing Metrics:
 http://your_server_ip:9100/metrics
