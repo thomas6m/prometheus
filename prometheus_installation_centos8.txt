@@ -30,7 +30,7 @@ chown -R prometheus:prometheus /var/lib/prometheus
 mv prometheus-2.51.1.linux-amd64/{prometheus,promtool} /usr/local/bin/
 chown prometheus:prometheus  /usr/local/bin/{prometheus,promtool}
 ------------------------------------------------------------------------
-vi /etc/systemd/system/prometheus.service
+tee /etc/systemd/system/prometheus.service<<EOF
 [Unit]
 Description=Prometheus
 Wants=network-online.target
@@ -48,6 +48,8 @@ ExecStart=/usr/local/bin/prometheus \
 
 [Install]
 WantedBy=multi-user.target
+EOF
+
 -------------------------------------------------------------------------
 
 systemctl daemon-reload
