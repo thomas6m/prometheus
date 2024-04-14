@@ -35,12 +35,7 @@ systemctl daemon-reload && systemctl start node_exporter
 systemctl enable node_exporter
 
 8. Check Node Exporter Status:
-sudo systemctl status node_exporter
+systemctl status node_exporter
 
 9. Accessing Metrics:
 http://your_server_ip:9100/metrics
-
-
-
-
-
