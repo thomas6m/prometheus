@@ -1,0 +1,60 @@
+https://prometheus.io/download/
+
+1. Download AlertManager:
+wget https://github.com/prometheus/alertmanager/releases/download/v0.27.0/alertmanager-0.27.0.linux-amd64.tar.gz
+
+2. Extract the Tarball:
+tar xzf alertmanager-0.27.0.linux-amd64.tar.gz
+
+3. Move AlertManager Binary:
+
+groupadd -f alertmanager
+useradd -g alertmanager --no-create-home --shell /bin/false alertmanager
+mkdir -p /etc/alertmanager/templates
+mkdir /var/lib/alertmanager
+chown alertmanager:alertmanager /etc/alertmanager
+chown alertmanager:alertmanager /var/lib/alertmanager
+
+cp alertmanager-0.27.0.linux-amd64/alertmanager /usr/bin/
+cp alertmanager-0.27.0.linux-amd64/amtool /usr/bin/
+chown alertmanager:alertmanager /usr/bin/alertmanager
+chown alertmanager:alertmanager /usr/bin/amtool
+
+cp alertmanager-0.27.0.linux-amd64/alertmanager.yml /etc/alertmanager/alertmanager.yml
+chown alertmanager:alertmanager /etc/alertmanager/alertmanager.yml
+
+
+4. Create a Systemd Service File:
+tee /usr/lib/systemd/system/alertmanager.service<<EOF
+[Unit]
+Description=AlertManager
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=alertmanager
+Group=alertmanager
+Type=simple
+ExecStart=/usr/bin/alertmanager \
+    --config.file /etc/alertmanager/alertmanager.yml \
+    --storage.path /var/lib/alertmanager/
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+
+chmod 664 /usr/lib/systemd/system/alertmanager.service
+
+
+5. Reload systemd and Start AlertManager:
+systemctl daemon-reload && systemctl start alertmanager
+
+6. Enable AlertManager to Start on Boot:
+systemctl enable alertmanager
+
+7. Check AlertManager Status:
+systemctl status alertmanager
+
+8. Accessing AlertManager:
+http://alertmanager.example.com:9093
