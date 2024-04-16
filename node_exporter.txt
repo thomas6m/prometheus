@@ -62,4 +62,4 @@ systemctl enable node_exporter
 systemctl status node_exporter
 
 10. Accessing Metrics:
-https://node-exporter.example.com:9100/
+http://node-exporter.example.com:9100/
