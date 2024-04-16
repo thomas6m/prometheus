@@ -1,3 +1,24 @@
+10.0.0.4        infra.example.com               infra
+10.0.0.5        workstation.example.com         workstation
+10.0.0.6        prometheus.example.com          prometheus
+10.0.0.7        alertmanager.example.com        alertmanager
+10.0.0.8        node-exporter.example.com       node-exporter
+10.0.0.10       k8s-master.example.com          k8s-master
+10.0.0.20       k8s-worker.example.com          k8s-worker
+----------------------------------------------------------------------------------------
+
+dnf -y install net-tools telnet curl wget traceroute nmap-ncat git  httpd-tools jq  nfs-utils
+systemctl stop firewalld && systemctl disable firewalld
+sed -i s/^SELINUX=.*$/SELINUX=disabled/ /etc/selinux/config && setenforce 0
+
+tee /etc/sysctl.d/70-ipv6.conf<<EOF
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+EOF
+
+sysctl --load /etc/sysctl.d/70-ipv6.conf
+dnf install -y epel-release && dnf update -y && reboot
+--------------------------------------------------------------------------------------
 https://prometheus.io/download/#node_exporter
 
 1. Download Node Exporter:
